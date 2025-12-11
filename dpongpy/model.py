@@ -5,8 +5,9 @@ from random import Random
 from enum import Enum
 from typing import Optional
 
-
+# Enum delle direzioni possibili
 class Direction(Enum):
+    #La direzione è rappresentata come un vettore 2D
     NONE = Vector2(0, 0)
     LEFT = Vector2(-1, 0)
     UP = Vector2(0, -1)
@@ -19,11 +20,11 @@ class Direction(Enum):
     def __str__(self):
         return repr(self)[1:-1]
 
-    @property
+    @property #getter : è verticale ?
     def is_vertical(self) -> bool:
         return self.value.x == 0 and self.value.y != 0
 
-    @property
+    @property #getter : è orizzontale ?
     def is_horizontal(self) -> bool:
         return self.value.y == 0 and self.value.x != 0
 
@@ -31,64 +32,66 @@ class Direction(Enum):
     def values(cls) -> list['Direction']:
         return list(cls.__members__.values())
 
-
+#Classe che definisce le dimensioni
 class Sized:
 
-    @property
+    @property #getter : larghezza
     def width(self) -> float:
         return self.size.x # type: ignore[attr-defined]
 
-    @property
+    @property #getter : altezza
     def height(self) -> float:
         return self.size.y # type: ignore[attr-defined]
 
-
+#Classe che definisce la posizione
 class Positioned:
 
-    @property
+    @property #getter : coordinata x
     def x(self) -> float:
         return self.position.x # type: ignore[attr-defined]
 
-    @property
+    @property #getter : coordinata y
     def y(self) -> float:
         return self.position.y # type: ignore[attr-defined]
 
 
+#Classe che definisce un rettangolo
 @dataclass
 class Rectangle(Sized, Positioned):
     top_left: Vector2
     bottom_right: Vector2
 
     def __post_init__(self):
-        fst, snd = Vector2(self.top_left), Vector2(self.bottom_right)
-        self.top_left = Vector2(min(fst.x, snd.x), min(fst.y, snd.y))
-        self.bottom_right = Vector2(max(fst.x, snd.x), max(fst.y, snd.y))
+        fst = Vector2(self.top_left) # primo punto
+        snd = Vector2(self.bottom_right) # secondo punto
+        self.top_left = Vector2(min(fst.x, snd.x), min(fst.y, snd.y)) # angolo in alto a sinistra
+        self.bottom_right = Vector2(max(fst.x, snd.x), max(fst.y, snd.y)) # angolo in basso a destra
 
-    @property
+    @property #getter : top
     def top(self) -> float:
         return self.top_left.y
 
-    @property
+    @property #getter : bottom
     def bottom(self) -> float:
         return self.bottom_right.y
 
-    @property
+    @property #getter : left
     def left(self) -> float:
         return self.top_left.x
 
-    @property
+    @property #getter : right
     def right(self) -> float:
         return self.bottom_right.x
 
-    @property
+    @property #getter : top right
     def top_right(self) -> Vector2:
         return Vector2(self.right, self.top)
 
-    @property
+    @property #getter : bottom left
     def bottom_left(self) -> Vector2:
         return Vector2(self.left, self.bottom)
 
-    @property
+    @property 
     def corners(self) -> list[Vector2]:
         return [self.top_left, self.top_right, self.bottom_right, self.bottom_left]
 
@@ -116,6 +119,7 @@ class Rectangle(Sized, Positioned):
             x, y = other
             return self.left <= x <= self.right and self.top <= y <= self.bottom
 
+    @property #getter : intersection with another rectangle
     def intersection_with(self, other: 'Rectangle') -> Optional['Rectangle']:
         if self.overlaps(other):
             return Rectangle(
@@ -130,6 +134,7 @@ class Rectangle(Sized, Positioned):
             )
         return None
 
+    # Calcola le direzioni e le quantità di sovrapposizione in caso di collisione
     def hits(self, other: 'Rectangle') -> dict[Direction, float]:
         result = dict()
         intersection = self.intersection_with(other)
@@ -159,7 +164,7 @@ class Rectangle(Sized, Positioned):
                 raise ValueError("Invalid collision, this is likely a bug")
         return result
 
-
+#Classe base per gli oggetti di gioco
 class GameObject(Sized, Positioned):
     def __init__(self, size, position=None, speed=None, name=None):
         self._size = Vector2(size)
@@ -238,11 +243,11 @@ for method_name in ['overlaps', 'is_inside', '__contains__', 'intersection_with'
         return getattr(Rectangle, method_name)(self.bounding_box, other)
     setattr(GameObject, method_name, method)
 
-
+#Classe che definisce la palla (non implementa nulla di nuovo rispetto a GameObject)
 class Ball(GameObject):
     pass
 
-
+#Classe che definisce la racchetta
 class Paddle(GameObject):
     _admissible_directions = set(Direction.values()) - {Direction.NONE}
 
@@ -264,7 +269,7 @@ class Paddle(GameObject):
         super().override(other)
         self.side = other.side # type: ignore[attr-defined]
 
-
+#Classe che definisce la impostazioni di gioco
 @dataclass
 class Config:
     paddle_ratio: Vector2 = field(default_factory=lambda: Vector2(0.01, 0.1))
@@ -273,7 +278,7 @@ class Config:
     paddle_speed_ratio: float = 0.2
     paddle_padding: float = 0.05
 
-
+#Classe che definisce il campo da gioco
 @dataclass
 class Board(Sized):
     size: Vector2
@@ -293,6 +298,7 @@ class Board(Sized):
                 name=f"wall_{dir.name.lower()}"
             )
 
+#Classe che definisce la pallina Pong
 class Pong(Sized):
     def __init__(self, size, config=None, paddles=None, random=None):
         self.size = Vector2(size)

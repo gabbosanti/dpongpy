@@ -3,6 +3,7 @@ from dpongpy.model import Direction
 import argparse
 
 
+#Fa il parssing degli argomenti
 def arg_parser():
     ap = argparse.ArgumentParser()
     ap.prog = "python -m " + dpongpy.__name__
@@ -46,10 +47,10 @@ def args_to_settings(args):
     return settings
 
 
-parser = arg_parser()
-args = parser.parse_args()
-settings = args_to_settings(args)
-if args.mode == 'local':
+parser = arg_parser() # Ottieni il parser degli argomenti
+args = parser.parse_args() # Esegui il parsing degli argomenti
+settings = args_to_settings(args) # Converti gli argomenti in impostazioni di gioco
+if args.mode == 'local': 
     if not settings.initial_paddles:
         settings.initial_paddles = [Direction.LEFT, Direction.RIGHT]
     dpongpy.main(settings)

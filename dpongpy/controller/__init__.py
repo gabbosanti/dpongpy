@@ -40,7 +40,7 @@ class ControlEvent(Enum):
             return event == self.value
         return False
 
-
+#Classe che definisce le azioni del giocatore
 class PlayerAction(Enum):
     MOVE_UP = 0
     MOVE_DOWN = 1
@@ -65,6 +65,7 @@ class PlayerAction(Enum):
         return None
 
 
+#Classe che mappa i tasti ai comandi del giocatore
 @dataclass(frozen=True)
 class ActionMap:
     move_up: int
@@ -101,6 +102,7 @@ class ActionMap:
         return {mapping.name: mapping for mapping in mappings}
 
 
+# Crea un evento di controllo
 def create_event(event: pygame.event.Event | ControlEvent, **kwargs):
     if isinstance(event, ControlEvent):
         event = pygame.event.Event(event.value, **kwargs)
@@ -110,16 +112,18 @@ def create_event(event: pygame.event.Event | ControlEvent, **kwargs):
         event = pygame.event.Event(event.type, data)
     return event
 
-
+# Aggiungi un evento alla coda degli eventi di pygame
 def post_event(event: pygame.event.Event | ControlEvent, **kwargs):
     event = create_event(event, **kwargs)
     pygame.event.post(event)
     return event
 
 
+#Interpreta gli input dell'utente e li converte in eventi di controllo
 class InputHandler:
     INPUT_EVENTS = (pygame.KEYDOWN, pygame.KEYUP)
 
+    # Crea un evento di controllo
     def create_event(self, event: pygame.event.Event | ControlEvent, **kwargs):
         return create_event(event, **kwargs)
 
@@ -145,20 +149,23 @@ class EventHandler:
     def __init__(self, pong: Pong):
         self._pong = pong
 
+    # Gestisce gli eventi di controllo
     def handle_events(self):
         for event in pygame.event.get(self.GAME_EVENTS):
-            if ControlEvent.PLAYER_JOIN.matches(event):
+            if ControlEvent.PLAYER_JOIN.matches(event): #Il giocatore si unisce al gioco
                 self.on_player_join(self._pong, **event.dict)
-            elif ControlEvent.PLAYER_LEAVE.matches(event):
+            elif ControlEvent.PLAYER_LEAVE.matches(event): #Il giocatore lascia il gioco
                 self.on_player_leave(self._pong, **event.dict)
-            elif ControlEvent.GAME_START.matches(event):
+            elif ControlEvent.GAME_START.matches(event): #Il gioco inizia
                 self.on_game_start(self._pong)
-            elif ControlEvent.GAME_OVER.matches(event):
+            elif ControlEvent.GAME_OVER.matches(event): #Il gioco termina
                 self.on_game_over(self._pong)
-            elif ControlEvent.PADDLE_MOVE.matches(event):
+            elif ControlEvent.PADDLE_MOVE.matches(event): #La racchetta si muove
                 self.on_paddle_move(self._pong, **event.dict)
-            elif ControlEvent.TIME_ELAPSED.matches(event):
+            elif ControlEvent.TIME_ELAPSED.matches(event): #Il tempo è finito
                 self.on_time_elapsed(self._pong, **event.dict)
+
+    #I metodi di callback per gli eventi di controllo (da fare)
 
     def on_player_join(self, pong: Pong, paddle_index: Direction):
         pass
